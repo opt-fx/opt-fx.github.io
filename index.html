@@ -37,6 +37,8 @@ a{color:inherit}
 .card .gear{color:var(--dim);font-size:13.5px;margin-top:2px}
 .card p{margin:0;color:#c7cbd1}
 .card .needs{font:12.5px 'IBM Plex Mono',monospace;color:var(--faint)}
+.card .needs a{color:var(--dim)}.card .needs a:hover{color:var(--text)}
+button.btn{font:inherit;font-weight:500;color:inherit;cursor:pointer}
 .card .credit{font-size:13px;color:var(--dim)}
 .card .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
 .btn{display:inline-block;text-decoration:none;border:1px solid var(--line);background:var(--panel2);border-radius:7px;padding:7px 14px;font-weight:500}
@@ -64,6 +66,22 @@ a{color:inherit}
 .fb .msg{color:var(--dim);font-size:13.5px}.fb .msg.ok{color:#7fd39a}.fb .msg.bad{color:#f08a7a}
 .fb .hp{position:absolute;left:-9999px}
 @media (max-width:720px){.fb form{grid-template-columns:1fr}}
+.card .top img{cursor:zoom-in}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(8,9,11,.94);display:none;flex-direction:column}
+.lb.open{display:flex}
+.lb .bar{display:flex;align-items:center;gap:12px;padding:12px 18px;color:var(--dim);font-size:14px}
+.lb .bar b{color:var(--text);font-weight:600}
+.lb .bar .sp{flex:1}
+.lb .bar button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 12px;cursor:pointer}
+.lb .bar button:hover{border-color:#55595f}
+.lb .stage{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:0 70px 18px}
+.lb .stage img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5);cursor:zoom-in}
+.lb.zoom .stage{display:block;padding:0 18px 18px}
+.lb.zoom .stage img{max-width:none;max-height:none;cursor:zoom-out}
+.lb .nav{position:absolute;top:50%;transform:translateY(-50%);font-size:28px;line-height:1;width:44px;height:64px;border-radius:8px;border:1px solid var(--line);background:rgba(29,31,35,.85);color:var(--text);cursor:pointer}
+.lb .nav:hover{border-color:#55595f}
+.lb .prev{left:14px}.lb .next{right:14px}
+.lb.zoom .nav{display:none}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--faint);font-size:12.5px}
 footer p{margin:4px 0}
 @media (max-width:720px){.hero{flex-direction:column;align-items:flex-start;gap:16px}.hero svg{width:84px;height:84px}.about{grid-template-columns:1fr}}
@@ -119,36 +137,43 @@ footer p{margin:4px 0}
   </footer>
 </div>
 
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Screenshots">
+  <div class="bar"><b id="lbTitle"></b><span id="lbCap"></span><span class="sp"></span><span id="lbCount"></span><button type="button" id="lbZoom">Zoom in</button><button type="button" id="lbClose" aria-label="Close">Close</button></div>
+  <div class="stage" id="lbStage"><img id="lbImg" alt=""></div>
+  <button class="nav prev" id="lbPrev" type="button" aria-label="Previous screenshot">‹</button>
+  <button class="nav next" id="lbNext" type="button" aria-label="Next screenshot">›</button>
+</div>
+
 <script>
 // Each app's icon comes from the OPT icon family (tools/icons.py writes icons/<app>.svg).
 const APPS = [
-  { id:'s950rx', name:'S950rx', icon:'s950rx', gear:'Akai S950 and S900', installable:true,
+  { id:'s950rx', shots:[['Sending samples in Demo mode, with the sampler’s display mirrored','shots/s950rx-1.png'], ['Edit break: hits found, ready to slice','shots/s950rx-2.png']], name:'S950rx', icon:'s950rx', gear:'Akai S950 and S900', installable:true,
     text:'Editor and sample transfer over RS232. Send and receive samples, edit every parameter, slice breaks, fit them to tempo and reproduce the sampler’s own Timestretch.',
     needs:'Chrome or Edge · USB–serial cable', credit:'A port of S950rs by Scott Swift (dxzl).' },
-  { id:'s612-transfer', name:'S612 transfer', icon:'s612-transfer', gear:'Akai S612', installable:true,
+  { id:'s612-transfer', shots:[['A break loaded and ready to send to the S612','shots/s612-transfer-1.png'], ['Edit, mode and voice controls','shots/s612-transfer-2.png']], name:'S612 transfer', icon:'s612-transfer', gear:'Akai S612', installable:true,
     text:'Sample transfer over MIDI, with simple waveform editing, loop setting and a library of Quick Disk images.',
     needs:'Chrome or Edge · MIDI interface' },
-  { id:'seer', name:'Seer', icon:'seer', gear:'Sequential Prophet-5 and Prophet-10 Rev 4', installable:true,
+  { id:'seer', shots:[['The editor, with a generated patch','shots/seer-1.png'], ['The Library','shots/seer-2.png']], name:'Seer', icon:'seer', gear:'Sequential Prophet-5 and Prophet-10 Rev 4', installable:true,
     text:'Patch generator, editor and librarian. Generate and mutate sounds, edit every control from the screen, and keep a searchable Library of your programs.',
     needs:'Chrome or Edge · MIDI', credit:'Formerly Rev 4 Patch Engine.' },
-  { id:'pad-loader', name:'Pad Loader', icon:'pad-loader', gear:'MKSREC 1', installable:true,
+  { id:'pad-loader', shots:[['Four SP-1200 kits on the pads','shots/pad-loader-1.png'], ['Outputs and project settings','shots/pad-loader-2.png']], name:'Pad Loader', icon:'pad-loader', gear:'MKSREC 1', installable:true,
     text:'Put samples onto the 64 pads and save a project the sampler loads. Brings in SP-1200 kits from Rossum .sp12 files and original E-mu floppy disk images. Set outputs, voices and choke groups, or add sounds to a project you already have.',
     needs:'Any modern browser' },
-  { id:'quchord', name:'QuChord', icon:'quchord', gear:'Any MIDI keyboard', installable:true,
+  { id:'quchord', shots:[['A held chord from chord memory','shots/quchord-1.png'], ['Euclidean rhythms built from the chord','shots/quchord-2.png']], name:'QuChord', icon:'quchord', gear:'Any MIDI keyboard', installable:true,
     text:'Chord generator, arpeggiator and Euclidean sequencer. Play one key and get a chord, an arpeggio, or interlocking Euclidean rhythms built from the chord, all synced to your sequencer’s clock.',
     needs:'Chrome or Edge · MIDI' },
 ];
 
 document.getElementById('apps').innerHTML = APPS.map(a => `
   <article class="card" id="${a.id}">
-    <div class="top"><img src="icons/${a.icon}.svg" alt="" width="72" height="72"><div><h2>${a.name}</h2><div class="gear">${a.gear}</div></div></div>
+    <div class="top"><img src="icons/${a.icon}.svg" alt="" width="72" height="72" data-shots="${a.id}" title="Screenshots"><div><h2>${a.name}</h2><div class="gear">${a.gear}</div></div></div>
     <p>${a.text}</p>
     ${a.credit ? `<div class="credit">${a.credit}</div>` : ''}
-    <div class="needs">${a.needs}${a.installable ? ' · installable' : ''}</div>
+    <div class="needs">${a.needs}${a.installable ? ' · installable' : ''} · <a href="https://github.com/opt-fx/${a.id}">GitHub</a></div>
     <div class="acts">
       <a class="btn primary" href="/${a.id}/">Open</a>
       ${a.installable ? `<a class="btn" href="/${a.id}/#install">Install</a>` : ''}
-      <a class="btn quiet" href="https://github.com/opt-fx/${a.id}">GitHub</a>
+      ${a.shots ? `<button class="btn" type="button" data-shots="${a.id}">Screenshots</button>` : ''}
     </div>
   </article>`).join('');
 
@@ -171,6 +196,46 @@ const FEEDBACK_ENDPOINT = 'https://formspree.io/f/moedrwbj';
       msg.className = 'msg bad'; msg.textContent = 'That didn’t send. Please try again in a moment.';
     }
     btn.disabled = false;
+  });
+})();
+
+// Screenshots viewer: fitted to the window; click the picture (or Zoom in) to see it larger and scroll around it.
+(function () {
+  const lb = document.getElementById('lb'), img = document.getElementById('lbImg'), stage = document.getElementById('lbStage');
+  let app = null, i = 0, opener = null;
+  const setZoom = on => {
+    lb.classList.toggle('zoom', on);
+    document.getElementById('lbZoom').textContent = on ? 'Fit to window' : 'Zoom in';
+    const fitted = img.getBoundingClientRect().width;
+    img.style.width = on ? Math.max(img.naturalWidth / 2, fitted * 1.6) + 'px' : '';
+    if (on) stage.scrollTo(0, 0);
+  };
+  const show = () => {
+    const [cap, src] = app.shots[i];
+    img.src = src; img.alt = `${app.name}: ${cap}`;
+    document.getElementById('lbTitle').textContent = app.name;
+    document.getElementById('lbCap').textContent = cap;
+    document.getElementById('lbCount').textContent = app.shots.length > 1 ? `${i + 1} of ${app.shots.length}` : '';
+    document.getElementById('lbPrev').hidden = document.getElementById('lbNext').hidden = app.shots.length < 2;
+    setZoom(false);
+  };
+  const open = (id, from) => {
+    app = APPS.find(a => a.id === id); if (!app || !app.shots) return;
+    opener = from; i = 0; show();
+    lb.classList.add('open'); document.body.style.overflow = 'hidden'; document.getElementById('lbClose').focus();
+  };
+  const close = () => { lb.classList.remove('open'); document.body.style.overflow = ''; img.removeAttribute('src'); if (opener) opener.focus(); };
+  const step = d => { i = (i + d + app.shots.length) % app.shots.length; show(); };
+  document.addEventListener('click', e => { const t = e.target.closest('[data-shots]'); if (t) open(t.dataset.shots, t); });
+  img.addEventListener('click', e => { e.stopPropagation(); setZoom(!lb.classList.contains('zoom')); });
+  stage.addEventListener('click', e => { if (e.target === stage) close(); });
+  document.getElementById('lbZoom').onclick = () => setZoom(!lb.classList.contains('zoom'));
+  document.getElementById('lbClose').onclick = close;
+  document.getElementById('lbPrev').onclick = () => step(-1);
+  document.getElementById('lbNext').onclick = () => step(1);
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') step(-1); else if (e.key === 'ArrowRight') step(1);
   });
 })();
 </script>
