@@ -153,7 +153,7 @@ document.getElementById('apps').innerHTML = APPS.map(a => `
   </article>`).join('');
 
 // Requests and feedback: sent by Formspree to OPT-FX's email. The section stays hidden until the form's address is set here.
-const FEEDBACK_ENDPOINT = '';
+const FEEDBACK_ENDPOINT = 'https://formspree.io/f/moedrwbj';
 (function () {
   if (!FEEDBACK_ENDPOINT) return;
   const box = document.getElementById('feedback'), form = document.getElementById('fbForm'), msg = document.getElementById('fbMsg');
