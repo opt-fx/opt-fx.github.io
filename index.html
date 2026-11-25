@@ -51,6 +51,19 @@ a{color:inherit}
 .about div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
 .about h3{margin:0 0 6px;font-size:16px}
 .about p{margin:0;color:#c7cbd1}
+.fb{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.fb h3{margin:0 0 4px;font-size:16px}.fb>p{margin:0 0 14px;color:#c7cbd1}
+.fb form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fb label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--dim)}
+.fb label i{font-style:normal;color:var(--faint)}
+.fb .wide{grid-column:1/-1}
+.fb input,.fb select,.fb textarea{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+.fb textarea{min-height:110px;resize:vertical}
+.fb input:focus,.fb select:focus,.fb textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.fb .row{grid-column:1/-1;display:flex;align-items:center;gap:14px}
+.fb .msg{color:var(--dim);font-size:13.5px}.fb .msg.ok{color:#7fd39a}.fb .msg.bad{color:#f08a7a}
+.fb .hp{position:absolute;left:-9999px}
+@media (max-width:720px){.fb form{grid-template-columns:1fr}}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--faint);font-size:12.5px}
 footer p{margin:4px 0}
 @media (max-width:720px){.hero{flex-direction:column;align-items:flex-start;gap:16px}.hero svg{width:84px;height:84px}.about{grid-template-columns:1fr}}
@@ -63,7 +76,7 @@ footer p{margin:4px 0}
     <div>
       <h1>OPT-FX</h1>
       <p>Free browser apps for samplers and synths, old and new. Nothing to download: open one in Chrome or Edge and plug in.</p>
-      <p class="support"><a class="btn kofi" href="https://ko-fi.com/optfx">Support OPT-FX on Ko-fi</a></p>
+      <p class="support"><a class="btn kofi" href="https://ko-fi.com/optfx">Support OPT-FX on Ko-fi</a> <a class="btn" id="requestLink" href="#feedback" hidden>Request an app</a></p>
     </div>
   </header>
 
@@ -78,6 +91,26 @@ footer p{margin:4px 0}
       <h3>Feedback and support</h3>
       <p>Every app has a GitHub page with its README and an issues list for bug reports and requests. The apps are free to use. If they've earned a place in your studio, you can <a href="https://ko-fi.com/optfx">buy OPT-FX a coffee on Ko-fi</a>.</p>
     </div>
+  </section>
+
+  <section class="fb" id="feedback" hidden>
+    <h3>Requests and feedback</h3>
+    <p>Ideas for a new app, a feature you'd like, something that isn't working, or just how you're using them: it all comes straight to OPT-FX.</p>
+    <form id="fbForm">
+      <label>What is it?
+        <select name="kind" required><option>App request</option><option>Feature idea</option><option>Bug report</option><option>Feedback</option></select>
+      </label>
+      <label>Which app?
+        <select name="app" id="fbApp"><option>A new app</option></select>
+      </label>
+      <label class="wide">Your message
+        <textarea name="message" required placeholder="For an app request: which gear, and what you'd want the app to do."></textarea>
+      </label>
+      <label><span>Name <i>(optional)</i></span><input name="name" autocomplete="name"></label>
+      <label><span>Email <i>(optional, if you'd like a reply)</i></span><input name="email" type="email" autocomplete="email"></label>
+      <input class="hp" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="row"><button class="btn primary" type="submit">Send</button><span class="msg" id="fbMsg" role="status"></span></div>
+    </form>
   </section>
 
   <footer>
@@ -118,6 +151,28 @@ document.getElementById('apps').innerHTML = APPS.map(a => `
       <a class="btn quiet" href="https://github.com/opt-fx/${a.id}">GitHub</a>
     </div>
   </article>`).join('');
+
+// Requests and feedback: sent by Formspree to OPT-FX's email. The section stays hidden until the form's address is set here.
+const FEEDBACK_ENDPOINT = '';
+(function () {
+  if (!FEEDBACK_ENDPOINT) return;
+  const box = document.getElementById('feedback'), form = document.getElementById('fbForm'), msg = document.getElementById('fbMsg');
+  document.getElementById('fbApp').insertAdjacentHTML('beforeend', APPS.map(a => `<option>${a.name}</option>`).join('') + '<option>The website</option>');
+  box.hidden = false; document.getElementById('requestLink').hidden = false;
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = form.querySelector('button'); btn.disabled = true; msg.className = 'msg'; msg.textContent = 'Sending…';
+    try {
+      const data = new FormData(form); data.append('_subject', `opt-fx.com: ${data.get('kind')} (${data.get('app')})`);
+      const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
+      if (!r.ok) throw new Error(r.status);
+      form.reset(); msg.className = 'msg ok'; msg.textContent = 'Thanks, that’s been sent.';
+    } catch (err) {
+      msg.className = 'msg bad'; msg.textContent = 'That didn’t send. Please try again in a moment.';
+    }
+    btn.disabled = false;
+  });
+})();
 </script>
 </body>
 </html>
